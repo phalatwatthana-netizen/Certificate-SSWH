@@ -588,7 +588,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             // ===== ตั้งค่า Google Sheets ศูนย์กลาง =====
             const SHEET_ID = '10VsSDUgrGtgh5vAs_cWanBNmtKIdlbf1aH7_ZLixsdk';
-            const PROJECTS_TAB = 'Projects';
+            // ชื่อแท็บตั้งค่าการ์ดโครงการ (ลองตามลำดับ ใช้ชื่อไหนก็ได้)
+            const CONFIG_TABS = ['setting', 'Setting', 'ตั้งค่า', 'Projects'];
             const DEFAULT_CERT_IMAGE = 'https://lh3.googleusercontent.com/d/14GW0XJ_4BkTEOYgk72Ri3WFP7ToPH8Es';
             const sheetCsvUrl = (tab) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
 
@@ -720,8 +721,18 @@
                 grid.classList.add('hidden');
 
                 try {
-                    const response = await fetch(sheetCsvUrl(PROJECTS_TAB));
-                    const csvText = await response.text();
+                    // ลองอ่านจากแท็บตั้งค่าตามลำดับ ใช้ตัวแรกที่มีข้อมูล
+                    let csvText = '';
+                    for (const tab of CONFIG_TABS) {
+                        try {
+                            const resp = await fetch(sheetCsvUrl(tab));
+                            const txt = await resp.text();
+                            if (txt && !txt.trim().startsWith('<') && txt.split('\n').filter(r => r.trim()).length > 1) {
+                                csvText = txt;
+                                break;
+                            }
+                        } catch (e) { /* ลองแท็บถัดไป */ }
+                    }
                     const rows = csvText.split('\n').filter(r => r.trim());
                     PROJECTS = [];
 
