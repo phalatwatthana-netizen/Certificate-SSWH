@@ -593,6 +593,15 @@
             const DEFAULT_CERT_IMAGE = 'https://lh3.googleusercontent.com/d/14GW0XJ_4BkTEOYgk72Ri3WFP7ToPH8Es';
             const sheetCsvUrl = (tab) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
 
+            // แปลงลิงก์ Google Drive (แชร์/open/uc) ให้เป็นลิงก์รูปตรงที่ใช้เป็นพื้นหลังได้
+            const toDirectImageUrl = (url) => {
+                if (!url) return url;
+                const u = url.trim();
+                const m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || u.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (m && m[1]) return `https://lh3.googleusercontent.com/d/${m[1]}`;
+                return u;
+            };
+
             // ตัวเลือกข้อมูลทั่วไป (ใช้ร่วมกันทุกโครงการ)
             let dropdownOptions = {
                 sessions: ["1", "2", "3", "4", "5", "อื่นๆ"],
@@ -761,7 +770,7 @@
                                 name,
                                 description: descIdx !== -1 ? (cols[descIdx] || '').trim() : '',
                                 date: dateIdx !== -1 ? (cols[dateIdx] || '').trim() : '',
-                                certImage: (imgIdx !== -1 && (cols[imgIdx] || '').trim()) ? cols[imgIdx].trim() : DEFAULT_CERT_IMAGE
+                                certImage: (imgIdx !== -1 && (cols[imgIdx] || '').trim()) ? toDirectImageUrl(cols[imgIdx].trim()) : DEFAULT_CERT_IMAGE
                             });
                         });
                     }
