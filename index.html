@@ -744,12 +744,18 @@
                         const descIdx = col(['คำอธิบาย', 'รายละเอียด']);
                         const dateIdx = col(['วันที่', 'ปี', 'date']);
                         const imgIdx = col(['เกียรติบัตร', 'ใบประกาศ', 'ลิงค์', 'ลิงก์', 'รูป', 'image', 'link', 'cert']);
+                        const showIdx = col(['แสดง', 'สถานะ', 'เปิด', 'show', 'status', 'active']);
+
+                        // ค่าที่แปลว่า "ซ่อน/ปิด" (นอกเหนือจากนี้ถือว่าแสดง)
+                        const isHidden = (v) => ['false', 'ไม่', 'ไม่แสดง', 'ซ่อน', 'ปิด', 'hide', 'hidden', 'inactive', 'no', 'n', '0', 'off'].includes((v || '').trim().toLowerCase());
 
                         rows.slice(1).forEach(r => {
                             const cols = parseCSVRow(r);
                             const id = idIdx !== -1 ? (cols[idIdx] || '').trim() : '';
                             const name = nameIdx !== -1 ? (cols[nameIdx] || '').trim() : '';
                             if (!id || !name) return;
+                            // ซ่อนการ์ดถ้าคอลัมน์แสดงถูกตั้งเป็นค่าปิด
+                            if (showIdx !== -1 && isHidden(cols[showIdx])) return;
                             PROJECTS.push({
                                 id,
                                 name,
