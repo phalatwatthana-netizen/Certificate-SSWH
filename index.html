@@ -706,6 +706,7 @@
             const projById = (id) => PROJECTS.find(p => p.id === id);
             const qTabName = (id) => `${id}_ถาม`;
             const rTabName = (id) => `${id}_ตอบ`;
+            const rosterTabName = (id) => `Certificate-${id}`;
 
             const showHome = () => {
                 currentProject = null;
@@ -747,31 +748,38 @@
                     PROJECTS = [];
 
                     if (rows.length > 1) {
-                        const headers = parseCSVRow(rows[0]).map(h => h.trim());
-                        const col = (names) => headers.findIndex(h => names.some(n => h.replace(/\s+/g, '').toLowerCase().includes(n)));
+                        const H = parseCSVRow(rows[0]).map(h => h.replace(/\s+/g, '').toLowerCase());
+                        const col = (names, excl = []) => H.findIndex(h => names.some(n => h.includes(n)) && !excl.some(x => h.includes(x)));
                         const idIdx = col(['id', 'รหัส']);
-                        const nameIdx = col(['ชื่อ']);
+                        const nameIdx = col(['ชื่อโครงการ', 'โครงการ']) !== -1 ? col(['ชื่อโครงการ', 'โครงการ']) : col(['ชื่อ'], ['รายชื่อ', 'แท็บ']);
                         const descIdx = col(['คำอธิบาย', 'รายละเอียด']);
                         const dateIdx = col(['วันที่', 'ปี', 'date']);
-                        const imgIdx = col(['เกียรติบัตร', 'ใบประกาศ', 'ลิงค์', 'ลิงก์', 'รูป', 'image', 'link', 'cert']);
+                        const imgIdx = col(['ลิงก์เกียรติบัตร', 'ลิงค์เกียรติบัตร', 'ลิงก์', 'ลิงค์', 'รูป', 'image', 'link'], ['แท็บ']);
                         const showIdx = col(['แสดง', 'สถานะ', 'เปิด', 'show', 'status', 'active']);
+                        // คอลัมน์ระบุแท็บข้อมูล (ถ้ามี)
+                        const qTabIdx = col(['แท็บคำถาม', 'คำถาม', 'questions']);
+                        const rTabIdx = col(['แท็บคำตอบ', 'แท็บผลประเมิน', 'ผลประเมิน', 'คำตอบ', 'responses']);
+                        const rosterIdx = col(['แท็บรายชื่อ', 'รายชื่อ', 'roster']);
 
-                        // ค่าที่แปลว่า "ซ่อน/ปิด" (นอกเหนือจากนี้ถือว่าแสดง)
                         const isHidden = (v) => ['false', 'ไม่', 'ไม่แสดง', 'ซ่อน', 'ปิด', 'hide', 'hidden', 'inactive', 'no', 'n', '0', 'off'].includes((v || '').trim().toLowerCase());
+                        const pick = (cols, idx) => (idx !== -1 && (cols[idx] || '').trim()) ? cols[idx].trim() : '';
 
                         rows.slice(1).forEach(r => {
                             const cols = parseCSVRow(r);
                             const id = idIdx !== -1 ? (cols[idIdx] || '').trim() : '';
                             const name = nameIdx !== -1 ? (cols[nameIdx] || '').trim() : '';
                             if (!id || !name) return;
-                            // ซ่อนการ์ดถ้าคอลัมน์แสดงถูกตั้งเป็นค่าปิด
                             if (showIdx !== -1 && isHidden(cols[showIdx])) return;
                             PROJECTS.push({
                                 id,
                                 name,
                                 description: descIdx !== -1 ? (cols[descIdx] || '').trim() : '',
                                 date: dateIdx !== -1 ? (cols[dateIdx] || '').trim() : '',
-                                certImage: (imgIdx !== -1 && (cols[imgIdx] || '').trim()) ? toDirectImageUrl(cols[imgIdx].trim()) : DEFAULT_CERT_IMAGE
+                                certImage: (imgIdx !== -1 && (cols[imgIdx] || '').trim()) ? toDirectImageUrl(cols[imgIdx].trim()) : DEFAULT_CERT_IMAGE,
+                                // แท็บข้อมูล: ใช้ค่าที่ระบุใน setting ก่อน ถ้าว่างใช้ชื่อตามค่าเริ่มต้น
+                                qTab: pick(cols, qTabIdx) || qTabName(id),
+                                rTab: pick(cols, rTabIdx) || rTabName(id),
+                                rosterTab: pick(cols, rosterIdx) || rosterTabName(id)
                             });
                         });
                     }
@@ -859,7 +867,7 @@
             };
 
             const fetchProjectQuestions = async (proj) => {
-                const response = await fetch(sheetCsvUrl(qTabName(proj.id)));
+                const response = await fetch(sheetCsvUrl(proj.qTab));
                 const csvText = await response.text();
                 const rows = csvText.split('\n').filter(r => r.trim());
                 const sections = [];
@@ -927,12 +935,12 @@
                     if (surveySections.length > 0) {
                         statusEl.innerHTML = `<span class="flex items-center gap-2 text-brand-green bg-brand-green/10 px-3 py-1.5 rounded-full border border-brand-green/20"><div class="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_5px_rgba(52,211,153,0.8)]"></div> พร้อมประเมิน</span>`;
                     } else {
-                        statusEl.innerHTML = `<span class="flex items-center gap-2 text-rose-500 bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200">ไม่พบคำถามในแท็บ ${qTabName(proj.id)}</span>`;
+                        statusEl.innerHTML = `<span class="flex items-center gap-2 text-rose-500 bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200">ไม่พบคำถามในแท็บ ${proj.qTab}</span>`;
                     }
                 } catch (error) {
                     console.error('Error loading project questions:', error);
                     statusEl.innerHTML = `<span class="flex items-center gap-2 text-rose-500 bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200">โหลดคำถามไม่สำเร็จ</span>`;
-                    showToast(`โหลดคำถามไม่สำเร็จ (ต้องมีแท็บ ${qTabName(proj.id)})`, "error");
+                    showToast(`โหลดคำถามไม่สำเร็จ (ต้องมีแท็บ ${proj.qTab})`, "error");
                 }
             };
 
@@ -1128,7 +1136,7 @@
             const fetchCertNames = async () => {
                 certificateNamesList = [];
                 if (!currentProject) return;
-                const tabs = [`Certificate-${currentProject.id}`, rTabName(currentProject.id)];
+                const tabs = [currentProject.rosterTab, currentProject.rTab];
                 try {
                     const lists = await Promise.all(tabs.map(async (t) => {
                         try {
@@ -1229,7 +1237,7 @@
                 sessionFilter.classList.add('hidden');
 
                 try {
-                    const url = sheetCsvUrl(rTabName(currentProject.id));
+                    const url = sheetCsvUrl(currentProject.rTab);
                     const response = await fetch(url);
                     const csvText = await response.text();
                     const rows = csvText.split('\n').filter(r => r.trim());
@@ -2333,7 +2341,8 @@
                 const fullName = (prefixVal + document.getElementById('input-fname').value.trim() + ' ' + document.getElementById('input-lname').value.trim()).trim();
                 const payload = {
                     "projectId": currentProject ? currentProject.id : "",
-                    "sheetTab": currentProject ? rTabName(currentProject.id) : "",
+                    "sheetTab": currentProject ? currentProject.rTab : "",
+                    "questionsTab": currentProject ? currentProject.qTab : "",
                     "ชื่อ-สกุล (ใบประกาศ)": fullName || "ไม่ระบุชื่อ",
                     "ครั้งที่เข้าอบรม": getSelectValue('session'),
                     "เพศ": getSelectValue('gender'),
@@ -2558,7 +2567,7 @@
 
                 try {
                     const normalize = s => s.replace(/\s+/g, '').toLowerCase();
-                    const url = sheetCsvUrl(rTabName(currentProject.id));
+                    const url = sheetCsvUrl(currentProject.rTab);
                     const response = await fetch(url);
                     const csvText = await response.text();
                     const rows = csvText.split('\n').filter(r => r.trim());

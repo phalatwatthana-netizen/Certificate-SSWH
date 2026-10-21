@@ -25,7 +25,9 @@ function doPost(e) {
 
     // ถ้าแท็บว่าง -> สร้างหัวคอลัมน์จาก "แท็บคำถาม" ของโครงการ
     if (sheet.getLastRow() === 0) {
-      const questions = getProjectQuestions(ss, projectId);
+      // ชื่อแท็บคำถาม: จาก payload ก่อน (ตั้งใน setting ได้) ไม่งั้นใช้ <id>_ถาม
+      const qTab = (payload.questionsTab || (projectId ? projectId + '_ถาม' : '')).toString().trim();
+      const questions = getProjectQuestions(ss, qTab);
       const headers = LEADING_HEADERS.concat(questions).concat(TRAILING_HEADERS);
       sheet.appendRow(headers);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f3f4f6");
@@ -50,11 +52,11 @@ function doPost(e) {
   }
 }
 
-// อ่านรายการคำถามจากแท็บ "<projectId>_ถาม" (คอลัมน์ชื่อ "คำถาม")
-function getProjectQuestions(ss, projectId) {
+// อ่านรายการคำถามจากแท็บคำถาม (คอลัมน์ชื่อ "คำถาม")
+function getProjectQuestions(ss, qTabName) {
   const questions = [];
-  if (!projectId) return questions;
-  const qSheet = ss.getSheetByName(projectId + '_ถาม');
+  if (!qTabName) return questions;
+  const qSheet = ss.getSheetByName(qTabName);
   if (!qSheet || qSheet.getLastRow() < 2) return questions;
 
   const values = qSheet.getDataRange().getValues();
