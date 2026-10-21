@@ -821,14 +821,19 @@
                 const sections = [];
                 if (rows.length > 1) {
                     const headers = parseCSVRow(rows[0]).map(h => h.replace(/\s+/g, '').toLowerCase());
-                    const secIdx = headers.findIndex(h => h.includes('หมวด'));
-                    const qIdx = headers.findIndex(h => h.includes('คำถาม') || h.includes('ข้อ'));
+                    const secIdx = headers.findIndex(h => h.includes('หมวด') || h.includes('ด้าน') || h.includes('section') || h.includes('หัวข้อ'));
+                    let qIdx = headers.findIndex(h => h.includes('คำถาม') || h.includes('ข้อ') || h.includes('question') || h.includes('รายการ'));
+                    // สำรอง: ถ้าหาคอลัมน์คำถามไม่เจอ ให้เดาจากจำนวนคอลัมน์
+                    if (qIdx === -1) {
+                        if (headers.length >= 2) qIdx = (secIdx === headers.length - 1) ? headers.length - 2 : headers.length - 1;
+                        else qIdx = 0;
+                    }
                     const map = new Map();
                     const order = [];
                     rows.slice(1).forEach(r => {
                         const cols = parseCSVRow(r);
-                        const sec = secIdx !== -1 ? (cols[secIdx] || '').trim() : 'การประเมิน';
-                        const q = qIdx !== -1 ? (cols[qIdx] || '').trim() : '';
+                        const sec = secIdx !== -1 ? (cols[secIdx] || '').trim() || 'การประเมิน' : 'การประเมิน';
+                        const q = (cols[qIdx] || '').trim();
                         if (!q) return;
                         if (!map.has(sec)) { map.set(sec, []); order.push(sec); }
                         map.get(sec).push(q);
