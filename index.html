@@ -141,8 +141,37 @@
 
     <div id="toast-container" class="fixed top-5 right-5 z-[200] flex flex-col gap-3"></div>
 
-    <nav class="fixed left-0 top-0 h-full w-64 glass-effect p-6 z-10 hidden md:flex flex-col border-r border-white/40">
-        <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-purple mb-6 tracking-tight drop-shadow-sm">SSWH<br><span class="text-lg text-slate-500 font-medium">AI Research 2026</span></h1>
+    <!-- ==================== HOME VIEW (รายการโครงการ) ==================== -->
+    <div id="view-home" class="w-full min-h-screen p-4 md:p-10 relative z-10 overflow-y-auto">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10 pt-6">
+                <h1 class="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-blue via-brand-purple to-brand-pink mb-3 drop-shadow-sm">ศูนย์รวมการประเมินและใบประกาศ</h1>
+                <p class="text-slate-600 font-medium text-base md:text-lg">เครือข่ายโรงพยาบาลศรีสังวรสุโขทัย จังหวัดสุโขทัย</p>
+                <p class="text-slate-500 font-medium mt-1">เลือกโครงการเพื่อเข้าสู่แบบประเมิน ใบประกาศ และแดชบอร์ด</p>
+            </div>
+
+            <div id="home-loading" class="h-64 flex flex-col items-center justify-center text-brand-purple font-bold gap-3 glass-effect rounded-3xl">
+                <svg class="w-10 h-10 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                <p class="text-lg">กำลังโหลดรายการโครงการ...</p>
+            </div>
+
+            <div id="home-empty" class="h-64 glass-effect rounded-3xl flex-col items-center justify-center text-slate-500 gap-3 hidden text-center px-6">
+                <svg class="w-12 h-12 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                <p class="text-lg font-semibold">ยังไม่มีโครงการ</p>
+                <p class="text-sm">เพิ่มโครงการในแท็บ <b>Projects</b> ของ Google Sheets (1 แถว = 1 โครงการ)</p>
+            </div>
+
+            <div id="home-projects" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+        </div>
+    </div>
+
+    <nav id="nav-sidebar" class="fixed left-0 top-0 h-full w-64 glass-effect p-6 z-10 hidden md:flex flex-col border-r border-white/40 hidden-section">
+        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-purple mb-2 tracking-tight drop-shadow-sm">ศูนย์รวมการประเมิน</h1>
+        <button id="btn-home" class="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-brand-purple mb-4 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            กลับหน้าแรก
+        </button>
+        <div id="nav-project-name" class="text-sm font-bold text-slate-700 bg-white/60 rounded-xl px-3 py-2 mb-6 border border-white/60 leading-snug"></div>
 
         <div class="space-y-3 flex-1 relative z-10">
             <button id="nav-survey" class="w-full flex items-center space-x-3 p-3 rounded-xl transition-all bg-gradient-to-r from-brand-blue/10 to-brand-purple/10 text-brand-purple font-semibold shadow-sm border border-brand-purple/20">
@@ -164,7 +193,7 @@
         </div>
     </nav>
 
-    <div class="md:hidden fixed bottom-0 left-0 w-full glass-effect z-[100] flex justify-around p-2 shadow-lg border-t border-white/50">
+    <div id="nav-mobile" class="md:hidden fixed bottom-0 left-0 w-full glass-effect z-[100] flex justify-around p-2 shadow-lg border-t border-white/50 hidden-section">
         <button id="nav-survey-mobile" class="flex flex-col items-center p-2 text-brand-purple flex-1">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
             <span class="text-[10px] font-semibold mt-1">ประเมิน</span>
@@ -183,7 +212,7 @@
         </button>
     </div>
 
-    <main class="w-full md:ml-64 p-4 md:p-8 pb-24 md:pb-8 relative z-10 h-screen overflow-y-auto" id="main-scroll-area">
+    <main class="w-full md:ml-64 p-4 md:p-8 pb-24 md:pb-8 relative z-10 h-screen overflow-y-auto hidden-section" id="main-scroll-area">
 
         <!-- ==================== SURVEY TAB ==================== -->
         <div id="tab-survey" class="max-w-4xl mx-auto glass-effect p-6 md:p-10 rounded-3xl relative">
@@ -207,9 +236,8 @@
 
             <div class="text-center mb-10 pt-8 md:pt-0">
                 <h2 class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-purple mb-4 mt-4 drop-shadow-sm">แบบประเมินความพึงพอใจ</h2>
-                <p class="text-slate-600 font-medium text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                    โครงการพัฒนางานประจำสู่งานวิจัยโดยใช้ปัญญาประดิษฐ์ <br class="hidden md:block"/>
-                    เครือข่ายโรงพยาบาลศรีสังวรสุโขทัย จังหวัดสุโขทัย ประจำปี 2568
+                <p class="text-slate-600 font-medium text-base md:text-lg max-w-2xl mx-auto leading-relaxed" id="survey-project-title">
+                    &nbsp;
                 </p>
             </div>
 
@@ -320,7 +348,7 @@
                 <div class="absolute inset-0 bg-white/50 rounded-3xl -z-10"></div>
 
                 <!-- Printable area with custom certificate background template -->
-                <div id="cert-printable-area" class="w-full min-w-[800px] max-w-[900px] aspect-[1.414] bg-white relative overflow-hidden shadow-2xl text-slate-800" style="background-image: url('https://lh3.googleusercontent.com/d/14GW0XJ_4BkTEOYgk72Ri3WFP7ToPH8Es'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+                <div id="cert-printable-area" class="w-full min-w-[800px] max-w-[900px] aspect-[1.414] bg-white relative overflow-hidden shadow-2xl text-slate-800" style="background-size: cover; background-position: center; background-repeat: no-repeat;">
                     <!-- Name overlaid on top of the pre-printed template background -->
                     <div id="display-cert-name" class="absolute font-extrabold text-slate-800 text-lg md:text-xl text-center" style="font-family: 'Prompt', sans-serif; top: 38%; left: 50%; transform: translate(-50%, -50%); width: 80%; line-height: 1.5;">
                         กรุณาระบุชื่อด้านบน
@@ -558,6 +586,13 @@
     <script>
         // ห่อหุ้มโค้ดทั้งหมดใน DOMContentLoaded เพื่อหลีกเลี่ยง Syntax/Parsing error จากภายนอก
         document.addEventListener('DOMContentLoaded', () => {
+            // ===== ตั้งค่า Google Sheets ศูนย์กลาง =====
+            const SHEET_ID = '10VsSDUgrGtgh5vAs_cWanBNmtKIdlbf1aH7_ZLixsdk';
+            const PROJECTS_TAB = 'Projects';
+            const DEFAULT_CERT_IMAGE = 'https://lh3.googleusercontent.com/d/14GW0XJ_4BkTEOYgk72Ri3WFP7ToPH8Es';
+            const sheetCsvUrl = (tab) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+
+            // ตัวเลือกข้อมูลทั่วไป (ใช้ร่วมกันทุกโครงการ)
             let dropdownOptions = {
                 sessions: ["1", "2", "3", "4", "5", "อื่นๆ"],
                 genders: ["ชาย", "หญิง", "อื่นๆ"],
@@ -565,13 +600,10 @@
                 departments: ["กลุ่มงานการแพทย์", "กลุ่มงานรังสีวิทยา", "กลุ่มงานเภสัชกรรม", "กลุ่มงานการพยาบาล", "อื่นๆ"]
             };
 
-            const surveySections = [
-                { title: "1. ด้านเนื้อหาของวิชาการ", questions: ["เนื้อหาสอดคล้องกับความต้องการของท่าน", "สามารถนำไปประยุกต์กับความต้องการขององค์กร", "สามารถนำไปประยุกต์ใช้กับการปฏิบัติงาน", "ความชัดเจนของเนื้อหาสาระ", "ความเหมาะสมของเวลา"] },
-                { title: "2. ด้านวิทยากร", questions: ["มีความรู้และประสบการณ์ในเนื้อหาวิชา", "ใช้ภาษาที่เข้าใจง่ายหรือยกตัวอย่างได้ชัดเจน", "มีเทคนิค / วิธีการสอนที่สามารถทำให้ผู้ฟังเข้าใจง่าย", "เปิดโอกาสให้ซักถามและสามารถตอบข้อซักถามได้"] },
-                { title: "3. ด้านเอกสาร", questions: ["มีเนื้อหาสาระที่ครอบคลุมและสอดคล้องกับหัวข้อประชุม", "เข้าใจง่าย", "สามารถนำไปใช้เป็นแนวทางในการดำเนินงาน"] },
-                { title: "4. ด้านการอำนวยความสะดวก", questions: ["สถานที่", "อุปกรณ์โสตทัศนูปกรณ์และเครื่องอำนวยความสะดวกเพียงพอ", "คุณภาพอาหาร / อาหารว่าง / เครื่องดื่ม", "คณะทำงาน"] },
-                { title: "5. ภาพรวม", questions: ["ความพึงพอใจในภาพรวมต่อการประชุม"] }
-            ];
+            // รายการโครงการ + โครงการที่กำลังเปิด + คำถามของโครงการ (โหลดจากชีต)
+            let PROJECTS = [];
+            let currentProject = null;
+            let surveySections = [];
 
             let ratingsData = {};
             let myChart = null;
@@ -657,6 +689,184 @@
                 if (tabName === 'dashboard') fetchDashboardData();
                 if (tabName === 'certificate') updateCertificateName();
                 if (tabName === 'lucky-draw') fetchDrawNames();
+            };
+
+            // ===== ศูนย์รวมโครงการ: หน้าแรก + เลือกโครงการ =====
+            const projById = (id) => PROJECTS.find(p => p.id === id);
+            const qTabName = (id) => `${id}_ถาม`;
+            const rTabName = (id) => `${id}_ตอบ`;
+
+            const showHome = () => {
+                currentProject = null;
+                document.getElementById('view-home').classList.remove('hidden-section');
+                document.getElementById('nav-sidebar').classList.add('hidden-section');
+                document.getElementById('nav-mobile').classList.add('hidden-section');
+                document.getElementById('main-scroll-area').classList.add('hidden-section');
+            };
+
+            const showProject = () => {
+                document.getElementById('view-home').classList.add('hidden-section');
+                document.getElementById('nav-sidebar').classList.remove('hidden-section');
+                document.getElementById('nav-mobile').classList.remove('hidden-section');
+                document.getElementById('main-scroll-area').classList.remove('hidden-section');
+            };
+
+            const fetchProjects = async () => {
+                const loading = document.getElementById('home-loading');
+                const empty = document.getElementById('home-empty');
+                const grid = document.getElementById('home-projects');
+                loading.classList.remove('hidden');
+                empty.classList.add('hidden'); empty.classList.remove('flex');
+                grid.classList.add('hidden');
+
+                try {
+                    const response = await fetch(sheetCsvUrl(PROJECTS_TAB));
+                    const csvText = await response.text();
+                    const rows = csvText.split('\n').filter(r => r.trim());
+                    PROJECTS = [];
+
+                    if (rows.length > 1) {
+                        const headers = parseCSVRow(rows[0]).map(h => h.trim());
+                        const col = (names) => headers.findIndex(h => names.some(n => h.replace(/\s+/g, '').toLowerCase().includes(n)));
+                        const idIdx = col(['id', 'รหัส']);
+                        const nameIdx = col(['ชื่อ']);
+                        const descIdx = col(['คำอธิบาย', 'รายละเอียด']);
+                        const dateIdx = col(['วันที่', 'ปี', 'date']);
+                        const imgIdx = col(['เกียรติบัตร', 'ใบประกาศ', 'ลิงค์', 'ลิงก์', 'รูป', 'image', 'link', 'cert']);
+
+                        rows.slice(1).forEach(r => {
+                            const cols = parseCSVRow(r);
+                            const id = idIdx !== -1 ? (cols[idIdx] || '').trim() : '';
+                            const name = nameIdx !== -1 ? (cols[nameIdx] || '').trim() : '';
+                            if (!id || !name) return;
+                            PROJECTS.push({
+                                id,
+                                name,
+                                description: descIdx !== -1 ? (cols[descIdx] || '').trim() : '',
+                                date: dateIdx !== -1 ? (cols[dateIdx] || '').trim() : '',
+                                certImage: (imgIdx !== -1 && (cols[imgIdx] || '').trim()) ? cols[imgIdx].trim() : DEFAULT_CERT_IMAGE
+                            });
+                        });
+                    }
+
+                    loading.classList.add('hidden');
+                    if (PROJECTS.length === 0) {
+                        empty.classList.remove('hidden'); empty.classList.add('flex');
+                    } else {
+                        renderHomeProjects();
+                        grid.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error fetching projects:', error);
+                    loading.classList.add('hidden');
+                    empty.classList.remove('hidden'); empty.classList.add('flex');
+                    showToast("โหลดรายการโครงการไม่สำเร็จ", "error");
+                }
+            };
+
+            const renderHomeProjects = () => {
+                const grid = document.getElementById('home-projects');
+                const gradients = [
+                    'from-brand-blue to-brand-purple',
+                    'from-brand-purple to-brand-pink',
+                    'from-brand-pink to-brand-orange',
+                    'from-emerald-400 to-brand-blue',
+                    'from-brand-orange to-brand-pink'
+                ];
+                grid.innerHTML = '';
+                PROJECTS.forEach((p, i) => {
+                    const card = document.createElement('button');
+                    card.className = "glass-effect rounded-3xl p-6 text-left hover:shadow-xl hover:-translate-y-1 transition-all border border-white/60 flex flex-col gap-4 group";
+                    card.innerHTML = `
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${gradients[i % gradients.length]} text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg text-slate-800 leading-snug mb-1">${p.name}</h3>
+                            ${p.date ? `<span class="inline-flex items-center gap-1 text-xs font-semibold text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-full mb-2"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>${p.date}</span>` : ''}
+                            <p class="text-sm text-slate-500 font-medium leading-relaxed line-clamp-3">${p.description || ''}</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-brand-purple font-semibold text-sm group-hover:gap-3 transition-all">
+                            เข้าสู่โครงการ
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => selectProject(p.id));
+                    grid.appendChild(card);
+                });
+            };
+
+            // แปลงแท็บคำถาม -> surveySections (จัดกลุ่มตามคอลัมน์ "หมวด")
+            const fetchProjectQuestions = async (proj) => {
+                const response = await fetch(sheetCsvUrl(qTabName(proj.id)));
+                const csvText = await response.text();
+                const rows = csvText.split('\n').filter(r => r.trim());
+                const sections = [];
+                if (rows.length > 1) {
+                    const headers = parseCSVRow(rows[0]).map(h => h.replace(/\s+/g, '').toLowerCase());
+                    const secIdx = headers.findIndex(h => h.includes('หมวด'));
+                    const qIdx = headers.findIndex(h => h.includes('คำถาม') || h.includes('ข้อ'));
+                    const map = new Map();
+                    const order = [];
+                    rows.slice(1).forEach(r => {
+                        const cols = parseCSVRow(r);
+                        const sec = secIdx !== -1 ? (cols[secIdx] || '').trim() : 'การประเมิน';
+                        const q = qIdx !== -1 ? (cols[qIdx] || '').trim() : '';
+                        if (!q) return;
+                        if (!map.has(sec)) { map.set(sec, []); order.push(sec); }
+                        map.get(sec).push(q);
+                    });
+                    order.forEach((sec, i) => {
+                        // ใส่เลขลำดับหมวดถ้ายังไม่มี เพื่อให้แสดงผล/กราฟสวย
+                        const title = /^\d+\./.test(sec) ? sec : `${i + 1}. ${sec}`;
+                        sections.push({ title, questions: map.get(sec) });
+                    });
+                }
+                return sections;
+            };
+
+            const selectProject = async (id) => {
+                const proj = projById(id);
+                if (!proj) return;
+                currentProject = proj;
+
+                // รีเซ็ตสถานะเดิม
+                ratingsData = {};
+                rawDashboardRows = []; rawDashboardHeaders = []; dashboardSessionFilterValue = "";
+                drawEntries = [];
+
+                // หัวข้อโครงการบนเมนู + หัวแบบประเมิน + รูปใบประกาศ
+                document.getElementById('nav-project-name').innerText = proj.name;
+                document.getElementById('survey-project-title').innerText = proj.name + (proj.date ? ` (${proj.date})` : '');
+                const certArea = document.getElementById('cert-printable-area');
+                certArea.style.backgroundImage = `url('${proj.certImage}')`;
+                document.getElementById('cert-name-input').value = '';
+                updateCertificateName();
+
+                // ซ่อนผลแดชบอร์ด/จับรางวัลเดิม
+                document.getElementById('dashboard-content').classList.add('hidden');
+                document.getElementById('draw-result').classList.add('hidden');
+
+                showProject();
+                switchTab('survey');
+
+                // โหลดคำถามของโครงการแล้วสร้างฟอร์ม
+                const statusEl = document.getElementById('sync-status');
+                statusEl.innerHTML = `<span class="flex items-center gap-2 text-brand-orange bg-brand-orange/10 px-3 py-1.5 rounded-full border border-brand-orange/20"><svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> โหลดคำถามโครงการ...</span>`;
+                try {
+                    surveySections = await fetchProjectQuestions(proj);
+                    renderFormUI();
+                    fetchCertNames();
+                    if (surveySections.length > 0) {
+                        statusEl.innerHTML = `<span class="flex items-center gap-2 text-brand-green bg-brand-green/10 px-3 py-1.5 rounded-full border border-brand-green/20"><div class="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_5px_rgba(52,211,153,0.8)]"></div> พร้อมประเมิน</span>`;
+                    } else {
+                        statusEl.innerHTML = `<span class="flex items-center gap-2 text-rose-500 bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200">ไม่พบคำถามในแท็บ ${qTabName(proj.id)}</span>`;
+                    }
+                } catch (error) {
+                    console.error('Error loading project questions:', error);
+                    statusEl.innerHTML = `<span class="flex items-center gap-2 text-rose-500 bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200">โหลดคำถามไม่สำเร็จ</span>`;
+                    showToast(`โหลดคำถามไม่สำเร็จ (ต้องมีแท็บ ${qTabName(proj.id)})`, "error");
+                }
             };
 
             const updateCertificateName = () => {
@@ -811,33 +1021,28 @@
             };
 
             // ดึงรายชื่อจากชีตสำหรับทำ Autocomplete
+            // ดึงรายชื่อสำหรับ autocomplete จากแท็บคำตอบของโครงการ (คอลัมน์ "ชื่อ-สกุล (ใบประกาศ)")
             const fetchCertNames = async () => {
+                certificateNamesList = [];
+                if (!currentProject) return;
                 try {
-                    const url = `https://docs.google.com/spreadsheets/d/10VsSDUgrGtgh5vAs_cWanBNmtKIdlbf1aH7_ZLixsdk/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Certificate')}`;
-                    const response = await fetch(url);
+                    const response = await fetch(sheetCsvUrl(rTabName(currentProject.id)));
                     const csvText = await response.text();
-                    const rows = csvText.split('\n');
-
-                    certificateNamesList = []; // รีเซ็ต
-
-                    // เริ่มดึงข้อมูลจากแถวที่ 2 (index 1) ข้าม Header
-                    for (let i = 1; i < rows.length; i++) {
-                        if (!rows[i].trim()) continue;
-                        const cols = parseCSVRow(rows[i]);
-
-                        // คอลัมน์ B (1), C (2), D (3)
-                        const prefix = cols[1] ? cols[1].trim() : '';
-                        const fName = cols[2] ? cols[2].trim() : '';
-                        const lName = cols[3] ? cols[3].trim() : '';
-
-                        // รวมชื่อและกำจัดช่องว่างส่วนเกิน
-                        let fullName = `${prefix}${fName} ${lName}`.trim().replace(/\s+/g, ' ');
-
-                        if (fullName && fullName !== 'undefined') {
-                            certificateNamesList.push(fullName);
+                    const rows = csvText.split('\n').filter(r => r.trim());
+                    if (rows.length > 1) {
+                        const headers = parseCSVRow(rows[0]).map(h => h.replace(/\s+/g, '').toLowerCase());
+                        let nameIdx = headers.findIndex(h => h.includes('ใบประกาศ'));
+                        if (nameIdx === -1) nameIdx = headers.findIndex(h => h.includes('ชื่อ'));
+                        if (nameIdx !== -1) {
+                            rows.slice(1).forEach(r => {
+                                const cols = parseCSVRow(r);
+                                const name = (cols[nameIdx] || '').trim();
+                                if (name && name !== 'ไม่ระบุชื่อ' && name.toLowerCase() !== 'undefined') {
+                                    certificateNamesList.push(name);
+                                }
+                            });
                         }
                     }
-                    // กรองรายชื่อซ้ำออก
                     certificateNamesList = [...new Set(certificateNamesList)];
                 } catch (error) {
                     console.error('Error fetching Certificate names:', error);
@@ -904,47 +1109,6 @@
                 });
             };
 
-            const fetchOptions = async () => {
-                const statusEl = document.getElementById('sync-status');
-                try {
-                    const url = `https://docs.google.com/spreadsheets/d/10VsSDUgrGtgh5vAs_cWanBNmtKIdlbf1aH7_ZLixsdk/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('ประเมินโครงการ1')}`;
-                    const response = await fetch(url);
-                    const csvText = await response.text();
-                    const rows = csvText.split('\n');
-
-                    const options = { sessions: new Set(), genders: new Set(), positions: new Set(), departments: new Set() };
-
-                    for (let i = 1; i < rows.length; i++) {
-                        if (!rows[i].trim()) continue;
-                        const cols = parseCSVRow(rows[i]);
-                        if (cols[0]) options.sessions.add(cols[0]);
-                        if (cols[1]) options.genders.add(cols[1]);
-                        if (cols[2]) options.positions.add(cols[2]);
-                        if (cols[3]) options.departments.add(cols[3]);
-                    }
-
-                    const processOptions = (set, isNumericSort = false) => {
-                        let arr = Array.from(set).filter(Boolean).filter(item => item !== 'อื่นๆ');
-                        if (isNumericSort) arr.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
-                        return [...arr, 'อื่นๆ'];
-                    };
-
-                    dropdownOptions = {
-                        sessions: processOptions(options.sessions, true),
-                        genders: processOptions(options.genders),
-                        positions: processOptions(options.positions),
-                        departments: processOptions(options.departments)
-                    };
-
-                    renderFormUI();
-                    statusEl.innerHTML = `<span class="flex items-center gap-2 text-brand-green bg-brand-green/10 px-3 py-1.5 rounded-full border border-brand-green/20"><div class="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_5px_rgba(52,211,153,0.8)]"></div> เชื่อมต่อฟอร์มแล้ว</span>`;
-                } catch (error) {
-                    console.error('Error fetching Dropdown data:', error);
-                    statusEl.innerHTML = `<span class="flex items-center gap-2 text-rose-500 bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200">โหลดข้อมูลล้มเหลว</span>`;
-                    renderFormUI();
-                }
-            };
-
             const getSelectValue = (idPrefix) => {
                 const selectEl = document.getElementById(`select-${idPrefix}`);
                 const val = selectEl.value;
@@ -953,6 +1117,7 @@
 
             let isFetchingDashboard = false;
             const fetchDashboardData = async () => {
+                if (!currentProject) return;
                 if(isFetchingDashboard) return;
                 isFetchingDashboard = true;
 
@@ -971,7 +1136,7 @@
                 sessionFilter.classList.add('hidden');
 
                 try {
-                    const url = `https://docs.google.com/spreadsheets/d/10VsSDUgrGtgh5vAs_cWanBNmtKIdlbf1aH7_ZLixsdk/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('ประเมินโครงการ2')}`;
+                    const url = sheetCsvUrl(rTabName(currentProject.id));
                     const response = await fetch(url);
                     const csvText = await response.text();
                     const rows = csvText.split('\n').filter(r => r.trim());
@@ -1294,7 +1459,7 @@
                     chartDept = renderDoughnut('departmentChart', chartDept, generalInfo.departments, paletteDept);
 
                     // วาดกราฟ Bar สรุปคะแนน
-                    const chartLabels = data.map(sec => sec.title.split(' ')[1].replace('ด้าน', ''));
+                    const chartLabels = data.map(sec => sec.title.replace(/^\d+\.\s*/, '').replace(/^ด้าน/, ''));
                     const chartDataValues = data.map(sec => parseFloat(sec.average.toFixed(2)));
                     const bgColors = chartDataValues.map(val => val >= 4.5 ? '#a78bfa' : '#6cb2eb');
 
@@ -1725,8 +1890,7 @@
                         <div class="text-right" style="font-size: 10pt; color: #64748b; margin-bottom: 5px;">${dateText}</div>
                         <h1 style="font-size: 16pt; font-weight: bold; margin-bottom: 6px; text-align: center;">รายงานสรุปผลการประเมินความพึงพอใจ${sessionText}</h1>
                         <p style="text-align: center; color: #475569; margin-bottom: 15px; font-size: 11pt;">
-                            โครงการพัฒนางานประจำสู่งานวิจัยโดยใช้ปัญญาประดิษฐ์<br>
-                            เครือข่ายโรงพยาบาลศรีสังวรสุโขทัย จังหวัดสุโขทัย ประจำปี 2568
+                            ${currentProject ? currentProject.name : ''}${currentProject && currentProject.date ? ' (' + currentProject.date + ')' : ''}
                         </p>
 
                         <h2 style="font-size: 12pt; font-weight: bold; margin-top: 5px; margin-bottom: 10px;">1. ข้อมูลทั่วไปของผู้ตอบแบบประเมิน (รวม ${currentGeneralData.total} คน)</h2>
@@ -1813,7 +1977,7 @@
                     previewChartDept = renderPreviewDoughnut('previewDepartmentChart', previewChartDept, currentGeneralData.departments, paletteDept);
 
                     // วาดกราฟ Bar สรุปคะแนนใน A4
-                    const chartLabels = currentDashboardData.map(sec => sec.title.split(' ')[1].replace('ด้าน', ''));
+                    const chartLabels = currentDashboardData.map(sec => sec.title.replace(/^\d+\.\s*/, '').replace(/^ด้าน/, ''));
                     const chartDataValues = currentDashboardData.map(sec => parseFloat(sec.average.toFixed(2)));
                     const bgColors = chartDataValues.map(val => val >= 4.5 ? '#a78bfa' : '#6cb2eb');
 
@@ -2075,6 +2239,8 @@
                 const prefixVal = document.getElementById('input-prefix').value;
                 const fullName = (prefixVal + document.getElementById('input-fname').value.trim() + ' ' + document.getElementById('input-lname').value.trim()).trim();
                 const payload = {
+                    "projectId": currentProject ? currentProject.id : "",
+                    "sheetTab": currentProject ? rTabName(currentProject.id) : "",
                     "ชื่อ-สกุล (ใบประกาศ)": fullName || "ไม่ระบุชื่อ",
                     "ครั้งที่เข้าอบรม": getSelectValue('session'),
                     "เพศ": getSelectValue('gender'),
@@ -2289,6 +2455,7 @@
             };
 
             const fetchDrawNames = async () => {
+                if (!currentProject) return;
                 if (isFetchingDraw) return;
                 isFetchingDraw = true;
 
@@ -2298,7 +2465,7 @@
 
                 try {
                     const normalize = s => s.replace(/\s+/g, '').toLowerCase();
-                    const url = `https://docs.google.com/spreadsheets/d/10VsSDUgrGtgh5vAs_cWanBNmtKIdlbf1aH7_ZLixsdk/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('ประเมินโครงการ2')}`;
+                    const url = sheetCsvUrl(rTabName(currentProject.id));
                     const response = await fetch(url);
                     const csvText = await response.text();
                     const rows = csvText.split('\n').filter(r => r.trim());
@@ -2410,10 +2577,13 @@
                 }, 900);
             });
 
-            // Start processing
-            fetchOptions();
-            fetchCertNames();
+            // ปุ่มกลับหน้าแรก
+            document.getElementById('btn-home').addEventListener('click', showHome);
+
+            // Start processing — เริ่มที่หน้ารายการโครงการ
             initAutocomplete();
+            showHome();
+            fetchProjects();
         });
 
     </script>
