@@ -614,6 +614,7 @@
             let PROJECTS = [];
             let currentProject = null;
             let surveySections = [];
+            let optionsReady = null; // promise โหลดตัวเลือก dropdown (ใช้ร่วมทุกโครงการ)
 
             let ratingsData = {};
             let myChart = null;
@@ -823,6 +824,40 @@
             };
 
             // แปลงแท็บคำถาม -> surveySections (จัดกลุ่มตามคอลัมน์ "หมวด")
+            // โหลดตัวเลือก dropdown (ครั้งที่/เพศ/ตำแหน่ง/หน่วยงาน) จากแท็บตัวเลือกส่วนกลาง
+            const fetchOptions = async () => {
+                const candidates = ['ตัวเลือก', 'Options', 'options', 'dropdown', 'ประเมินโครงการ1'];
+                for (const tab of candidates) {
+                    try {
+                        const resp = await fetch(sheetCsvUrl(tab));
+                        const txt = await resp.text();
+                        if (!txt || txt.trim().startsWith('<')) continue;
+                        const rows = txt.split('\n').filter(r => r.trim());
+                        if (rows.length < 2) continue;
+                        const H = parseCSVRow(rows[0]).map(h => h.replace(/\s+/g, '').toLowerCase());
+                        const find = (k) => H.findIndex(h => h.includes(k));
+                        const sIdx = find('ครั้งที่'), gIdx = find('เพศ'), pIdx = find('ตำแหน่ง'), dIdx = find('หน่วยงาน');
+                        if (sIdx === -1 && gIdx === -1 && pIdx === -1 && dIdx === -1) continue;
+
+                        const collect = (idx, numeric) => {
+                            if (idx === -1) return null;
+                            const set = new Set();
+                            rows.slice(1).forEach(r => { const v = (parseCSVRow(r)[idx] || '').trim(); if (v) set.add(v); });
+                            let arr = [...set].filter(x => x !== 'อื่นๆ');
+                            if (numeric) arr.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+                            return arr.length ? [...arr, 'อื่นๆ'] : null;
+                        };
+                        dropdownOptions = {
+                            sessions: collect(sIdx, true) || dropdownOptions.sessions,
+                            genders: collect(gIdx) || dropdownOptions.genders,
+                            positions: collect(pIdx) || dropdownOptions.positions,
+                            departments: collect(dIdx) || dropdownOptions.departments
+                        };
+                        return;
+                    } catch (e) { /* ลองแท็บถัดไป */ }
+                }
+            };
+
             const fetchProjectQuestions = async (proj) => {
                 const response = await fetch(sheetCsvUrl(qTabName(proj.id)));
                 const csvText = await response.text();
@@ -885,6 +920,7 @@
                 const statusEl = document.getElementById('sync-status');
                 statusEl.innerHTML = `<span class="flex items-center gap-2 text-brand-orange bg-brand-orange/10 px-3 py-1.5 rounded-full border border-brand-orange/20"><svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> โหลดคำถามโครงการ...</span>`;
                 try {
+                    if (optionsReady) { try { await optionsReady; } catch (e) {} }
                     surveySections = await fetchProjectQuestions(proj);
                     renderFormUI();
                     fetchCertNames();
@@ -2640,6 +2676,7 @@
             // Start processing — เริ่มที่หน้ารายการโครงการ
             initAutocomplete();
             showHome();
+            optionsReady = fetchOptions();
             fetchProjects();
         });
 
