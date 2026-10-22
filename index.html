@@ -308,12 +308,7 @@
                         </div>
                         <div id="select-position-container"></div>
                         <div id="select-role-container"></div>
-                        <div class="space-y-2">
-                            <label class="text-base font-semibold text-slate-700">ประสบการณ์ทำงาน (ปี) <span class="text-brand-pink">*</span></label>
-                            <input type="number" id="input-experience" min="0" step="0.5" placeholder="ระบุจำนวนปี" class="w-full p-3 border-2 border-brand-purple/30 rounded-xl focus:ring-4 focus:ring-brand-purple/20 focus:border-brand-purple outline-none text-base font-medium text-slate-700 bg-white shadow-md shadow-brand-purple/10 disabled:opacity-50 transition-all duration-300 hover:border-brand-purple/50 hover:shadow-lg hover:shadow-brand-purple/20" />
-                            <p class="text-xs text-slate-500 font-medium mt-1">* มากกว่า 6 เดือนปัดเป็น 1 ปี (เช่น 2 ปี 7 เดือน = 3)</p>
-                            <p class="text-red-500 text-sm font-medium mt-1 hidden" id="error-experience">กรุณาระบุประสบการณ์ทำงาน</p>
-                        </div>
+                        <div id="select-experience-container"></div>
                         <div id="select-department-container" class="md:col-span-2"></div>
                     </div>
                 </section>
@@ -644,7 +639,8 @@
                 genders: ["ชาย", "หญิง", "อื่นๆ"],
                 positions: ["แพทย์", "เภสัชกร", "พยาบาลวิชาชีพ", "อื่นๆ"],
                 departments: ["กลุ่มงานการแพทย์", "กลุ่มงานรังสีวิทยา", "กลุ่มงานเภสัชกรรม", "กลุ่มงานการพยาบาล", "อื่นๆ"],
-                roles: ["ผู้เข้าร่วม", "วิทยากร", "คณะทำงาน", "อื่นๆ"]
+                roles: ["ผู้เข้าร่วม", "วิทยากร", "คณะทำงาน", "อื่นๆ"],
+                experiences: ["น้อยกว่า 1 ปี", "1 - 5 ปี", "6 - 10 ปี", "มากกว่า 10 ปี", "อื่นๆ"]
             };
 
             // รายการโครงการ + โครงการที่กำลังเปิด + คำถามของโครงการ (โหลดจากชีต)
@@ -899,8 +895,8 @@
                         if (rows.length < 2) continue;
                         const H = parseCSVRow(rows[0]).map(h => h.replace(/\s+/g, '').toLowerCase());
                         const find = (k) => H.findIndex(h => h.includes(k));
-                        const sIdx = find('ครั้งที่'), gIdx = find('เพศ'), pIdx = find('ตำแหน่ง'), dIdx = find('หน่วยงาน'), roleIdx = find('บทบาท');
-                        if (sIdx === -1 && gIdx === -1 && pIdx === -1 && dIdx === -1 && roleIdx === -1) continue;
+                        const sIdx = find('ครั้งที่'), gIdx = find('เพศ'), pIdx = find('ตำแหน่ง'), dIdx = find('หน่วยงาน'), roleIdx = find('บทบาท'), expIdx = find('ประสบการณ์');
+                        if (sIdx === -1 && gIdx === -1 && pIdx === -1 && dIdx === -1 && roleIdx === -1 && expIdx === -1) continue;
 
                         const collect = (idx, numeric) => {
                             if (idx === -1) return null;
@@ -915,7 +911,8 @@
                             genders: collect(gIdx) || dropdownOptions.genders,
                             positions: collect(pIdx) || dropdownOptions.positions,
                             departments: collect(dIdx) || dropdownOptions.departments,
-                            roles: collect(roleIdx) || dropdownOptions.roles
+                            roles: collect(roleIdx) || dropdownOptions.roles,
+                            experiences: collect(expIdx) || dropdownOptions.experiences
                         };
                         return;
                     } catch (e) { /* ลองแท็บถัดไป */ }
@@ -1071,9 +1068,6 @@
             document.getElementById('input-age').addEventListener('input', function() {
                 removeErrorState('input-age', 'error-age');
             });
-            document.getElementById('input-experience').addEventListener('input', function() {
-                removeErrorState('input-experience', 'error-experience');
-            });
 
             // ล้าง error ของคำนำหน้า / ชื่อ / นามสกุล
             document.getElementById('input-prefix').addEventListener('change', function() {
@@ -1091,6 +1085,7 @@
                 renderSelect('select-gender-container', 'เพศ', dropdownOptions.genders, 'gender');
                 renderSelect('select-position-container', 'ตำแหน่ง', dropdownOptions.positions, 'position');
                 renderSelect('select-role-container', 'บทบาท', dropdownOptions.roles, 'role');
+                renderSelect('select-experience-container', 'ประสบการณ์ทำงาน (ปี)', dropdownOptions.experiences, 'experience');
                 renderSelect('select-department-container', 'หน่วยงาน', dropdownOptions.departments, 'department');
 
                 const ratingsContainer = document.getElementById('rating-sections-container');
@@ -2337,7 +2332,7 @@
                 }
 
                 // Validate Section 1 Dropdowns and Inputs
-                ['session', 'gender', 'position', 'role', 'department'].forEach(prefix => {
+                ['session', 'gender', 'position', 'role', 'experience', 'department'].forEach(prefix => {
                     const sel = document.getElementById(`select-${prefix}`);
                     const err = document.getElementById(`error-${prefix}`);
                     if (!sel.value) {
@@ -2360,13 +2355,6 @@
                 if (!ageInput.value || ageInput.value <= 0) {
                     ageInput.classList.add('input-error');
                     ageErr.classList.remove('hidden');
-                    hasError = true;
-                }
-
-                const expInput = document.getElementById('input-experience');
-                if (expInput.value === '' || parseFloat(expInput.value) < 0) {
-                    expInput.classList.add('input-error');
-                    document.getElementById('error-experience').classList.remove('hidden');
                     hasError = true;
                 }
 
@@ -2406,10 +2394,6 @@
 
                 const prefixVal = document.getElementById('input-prefix').value;
                 const fullName = (prefixVal + document.getElementById('input-fname').value.trim() + ' ' + document.getElementById('input-lname').value.trim()).trim();
-                // ประสบการณ์ทำงาน: มากกว่า 6 เดือนปัดขึ้นเป็น 1 ปี
-                const expRaw = parseFloat(document.getElementById('input-experience').value) || 0;
-                const expYears = Math.floor(expRaw) + ((expRaw - Math.floor(expRaw)) > 0.5 ? 1 : 0);
-
                 const payload = {
                     "projectId": currentProject ? currentProject.id : "",
                     "sheetTab": currentProject ? currentProject.rTab : "",
@@ -2420,7 +2404,7 @@
                     "อายุ (ปี)": document.getElementById('input-age').value,
                     "ตำแหน่ง": getSelectValue('position'),
                     "บทบาท": getSelectValue('role'),
-                    "ประสบการณ์ทำงาน (ปี)": expYears,
+                    "ประสบการณ์ทำงาน (ปี)": getSelectValue('experience'),
                     "หน่วยงาน": getSelectValue('department'),
                     "ข้อเสนอแนะเพิ่มเติม": document.getElementById('input-suggestion').value,
                     ...ratingsData,
