@@ -2529,7 +2529,9 @@
                                 name: name,
                                 email: email,
                                 image: imgBase64,
-                                filename: `เกียรติบัตร-${name}`
+                                filename: `เกียรติบัตร-${name}`,
+                                projectName: currentProject ? currentProject.name : '',
+                                projectDate: currentProject ? currentProject.date : ''
                             })
                         });
 

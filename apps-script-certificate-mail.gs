@@ -30,13 +30,13 @@ function doPost(e) {
       MailApp.sendEmail({
         to: data.email,
         name: 'SSWH ศูนย์รวมการประเมิน',
-        subject: 'เกียรติบัตร - ' + (data.projectName || 'SSWH'),
+        subject: 'เกียรติบัตร - ' + (data.projectName || 'การประเมิน'),
         htmlBody:
             'เรียน คุณ' + (data.name || '') + '<br><br>' +
             'ขอส่งเกียรติบัตรการเข้าร่วม<br>' +
-            (data.projectName ? data.projectName + '<br>' : '') +
-            'เครือข่ายโรงพยาบาลศรีสังวรสุโขทัย จังหวัดสุโขทัย<br><br>' +
-            'กรุณาดูเกียรติบัตรจากไฟล์แนบ<br><br>' +
+            (data.projectName ? '<b>' + data.projectName + '</b><br>' : '') +
+            (data.projectDate ? data.projectDate + '<br>' : '') +
+            '<br>กรุณาดูเกียรติบัตรจากไฟล์แนบ<br><br>' +
             'ขอแสดงความนับถือ',
         attachments: [blob]
       });
