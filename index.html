@@ -469,21 +469,8 @@
                             รวม <span id="summary-total-count">0</span> คน
                         </div>
                     </div>
-                    <!-- เพิ่มพื้นที่ความสูงจาก h-48 เป็น h-64 และลดความกว้าง/จัดตำแหน่งให้เหมาะสมกับกราฟที่ใหญ่ขึ้น -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-white/50 p-5 rounded-2xl border border-white flex flex-col items-center shadow-sm">
-                            <h4 class="font-semibold text-slate-700 mb-3 w-full text-center border-b border-slate-200 pb-2">เพศ</h4>
-                            <div class="w-full h-64 relative"><canvas id="genderChart"></canvas></div>
-                        </div>
-                        <div class="bg-white/50 p-5 rounded-2xl border border-white flex flex-col items-center shadow-sm">
-                            <h4 class="font-semibold text-slate-700 mb-3 w-full text-center border-b border-slate-200 pb-2">ตำแหน่ง</h4>
-                            <div class="w-full h-64 relative"><canvas id="positionChart"></canvas></div>
-                        </div>
-                        <div class="bg-white/50 p-5 rounded-2xl border border-white flex flex-col items-center shadow-sm">
-                            <h4 class="font-semibold text-slate-700 mb-3 w-full text-center border-b border-slate-200 pb-2">หน่วยงาน</h4>
-                            <div class="w-full h-64 relative"><canvas id="departmentChart"></canvas></div>
-                        </div>
-                    </div>
+                    <!-- กราฟสรุปข้อมูลทั่วไป (สร้างอัตโนมัติตามฟิลด์จริง) -->
+                    <div id="general-charts-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 
                     <!-- เพิ่มตารางสรุปข้อมูลทั่วไป -->
                     <div class="mt-8 overflow-x-auto relative z-10 rounded-2xl border border-white/60">
@@ -656,7 +643,9 @@
             let certificateNamesList = []; // เก็บตัวแปรรายชื่อทั้งหมดที่ดึงมาจากชีต
 
             let chartGender = null, chartPosition = null, chartDept = null;
+            let generalCharts = []; // กราฟข้อมูลทั่วไปแบบ dynamic
             let previewChartGender = null, previewChartPosition = null, previewChartDept = null;
+            let previewGeneralCharts = []; // กราฟข้อมูลทั่วไปใน A4 แบบ dynamic
 
             // เก็บข้อมูลสำหรับการทำพรีวิว
             let currentDashboardData = null;
@@ -1470,29 +1459,49 @@
                     return true;
                 });
 
-                // ข้อมูลทั่วไป (General Info)
-                const generalInfo = {
-                    total: filteredRows.length,
-                    genders: {},
-                    positions: {},
-                    departments: {}
+                // ข้อมูลทั่วไป (General Info) — สร้างตามฟิลด์จริงที่มีในข้อมูล
+                const ageBucket = (v) => {
+                    const n = parseInt(v, 10);
+                    if (isNaN(n)) return (v || '').toString().trim();
+                    if (n < 20) return 'ต่ำกว่า 20 ปี';
+                    if (n <= 29) return '20 - 29 ปี';
+                    if (n <= 39) return '30 - 39 ปี';
+                    if (n <= 49) return '40 - 49 ปี';
+                    if (n <= 59) return '50 - 59 ปี';
+                    return '60 ปีขึ้นไป';
                 };
+                const fieldConfigs = [
+                    { label: 'เพศ', match: h => h === 'เพศ' },
+                    { label: 'อายุ', match: h => h.includes('อายุ'), transform: ageBucket, order: ['ต่ำกว่า 20 ปี', '20 - 29 ปี', '30 - 39 ปี', '40 - 49 ปี', '50 - 59 ปี', '60 ปีขึ้นไป'] },
+                    { label: 'ตำแหน่ง', match: h => h === 'ตำแหน่ง' },
+                    { label: 'บทบาท', match: h => h === 'บทบาท' },
+                    { label: 'ประสบการณ์ทำงาน', match: h => h.includes('ประสบการณ์') },
+                    { label: 'หน่วยงาน', match: h => h === 'หน่วยงาน' }
+                ];
+                const fields = [];
+                fieldConfigs.forEach(cfg => {
+                    const idx = rawDashboardHeaders.findIndex(h => cfg.match(normalize(h)));
+                    if (idx === -1) return;
+                    const data = {};
+                    filteredRows.forEach(row => {
+                        let v = (row[idx] || '').toString().trim();
+                        if (!v) return;
+                        if (cfg.transform) v = cfg.transform(v);
+                        data[v] = (data[v] || 0) + 1;
+                    });
+                    let ordered = data;
+                    if (cfg.order) {
+                        ordered = {};
+                        cfg.order.forEach(k => { if (data[k]) ordered[k] = data[k]; });
+                        Object.keys(data).forEach(k => { if (!(k in ordered)) ordered[k] = data[k]; });
+                    }
+                    if (Object.keys(ordered).length > 0) fields.push({ label: cfg.label, data: ordered });
+                });
+
+                const generalInfo = { total: filteredRows.length, fields };
 
                 const feedbackList = [];
-
                 filteredRows.forEach(row => {
-                    // ประมวลผลข้อมูลทั่วไป
-                    if (genderColIdx !== -1 && row[genderColIdx]) {
-                        generalInfo.genders[row[genderColIdx]] = (generalInfo.genders[row[genderColIdx]] || 0) + 1;
-                    }
-                    if (positionColIdx !== -1 && row[positionColIdx]) {
-                        generalInfo.positions[row[positionColIdx]] = (generalInfo.positions[row[positionColIdx]] || 0) + 1;
-                    }
-                    if (deptColIdx !== -1 && row[deptColIdx]) {
-                        generalInfo.departments[row[deptColIdx]] = (generalInfo.departments[row[deptColIdx]] || 0) + 1;
-                    }
-
-                    // ประมวลผลข้อเสนอแนะ
                     if (feedbackColIdx !== -1) {
                         const fbText = row[feedbackColIdx];
                         if (fbText && fbText.trim() !== '' && fbText.trim() !== '-' && !normalize(fbText).includes("ไม่มี")) {
@@ -1612,17 +1621,26 @@
                     });
                 };
 
-                // ธีมสีโดนัทเฉดม่วงเข้มอ้างอิงจากภาพ image_f236bb.png
-                const paletteGender = ['#3E1F63', '#7B4BBE', '#C88AD9', '#DCD6E8'];
-                const palettePosition = ['#5C2D91', '#8E7CC3', '#A06FD1', '#BBA7E6', '#3E1F63', '#7B4BBE'];
-                const paletteDept = ['#3E1F63', '#5C2D91', '#7B4BBE', '#A06FD1', '#C88AD9', '#8E7CC3', '#DCD6E8'];
+                // ธีมสีโดนัท (เฉดม่วง-ฟ้า-เขียว) ใช้วนทุกกราฟ
+                const palette = ['#3E1F63', '#7B4BBE', '#A06FD1', '#C88AD9', '#8E7CC3', '#5C2D91', '#BBA7E6', '#DCD6E8', '#a78bfa', '#6cb2eb', '#34d399', '#fb923c', '#d946ef'];
 
                 if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
                     Chart.register(ChartDataLabels);
 
-                    chartGender = renderDoughnut('genderChart', chartGender, generalInfo.genders, paletteGender);
-                    chartPosition = renderDoughnut('positionChart', chartPosition, generalInfo.positions, palettePosition);
-                    chartDept = renderDoughnut('departmentChart', chartDept, generalInfo.departments, paletteDept);
+                    // สร้างกราฟโดนัทต่อฟิลด์แบบอัตโนมัติตามฟิลด์จริง
+                    generalCharts.forEach(c => { try { c.destroy(); } catch (e) {} });
+                    generalCharts = [];
+                    const gGrid = document.getElementById('general-charts-grid');
+                    gGrid.innerHTML = '';
+                    generalInfo.fields.forEach((f, i) => {
+                        const card = document.createElement('div');
+                        card.className = "bg-white/50 p-5 rounded-2xl border border-white flex flex-col items-center shadow-sm";
+                        card.innerHTML = `<h4 class="font-semibold text-slate-700 mb-3 w-full text-center border-b border-slate-200 pb-2">${f.label}</h4><div class="w-full h-64 relative"><canvas id="genchart-${i}"></canvas></div>`;
+                        gGrid.appendChild(card);
+                    });
+                    generalInfo.fields.forEach((f, i) => {
+                        generalCharts.push(renderDoughnut(`genchart-${i}`, null, f.data, palette));
+                    });
 
                     // วาดกราฟ Bar สรุปคะแนน
                     const chartLabels = data.map(sec => sec.title.replace(/^\d+\.\s*/, '').replace(/^ด้าน/, ''));
@@ -1704,9 +1722,7 @@
                         }
                     };
 
-                    addSection('เพศ', generalInfo.genders);
-                    addSection('ตำแหน่ง', generalInfo.positions);
-                    addSection('หน่วยงาน', generalInfo.departments);
+                    generalInfo.fields.forEach(f => addSection(f.label, f.data));
 
                     return html;
                 };
@@ -1917,9 +1933,7 @@
                             }
                         }
                     };
-                    addSectionA4('เพศ', generalInfo.genders);
-                    addSectionA4('ตำแหน่ง', generalInfo.positions);
-                    addSectionA4('หน่วยงาน', generalInfo.departments);
+                    generalInfo.fields.forEach(f => addSectionA4(f.label, f.data));
                     html += `</tbody></table>`;
                     return html;
                 };
@@ -2060,19 +2074,12 @@
                         </p>
 
                         <h2 style="font-size: 12pt; font-weight: bold; margin-top: 5px; margin-bottom: 10px;">1. ข้อมูลทั่วไปของผู้ตอบแบบประเมิน (รวม ${currentGeneralData.total} คน)</h2>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; background: #f8fafc;">
-                            <div style="width: 32%; text-align: center;">
-                                <div style="font-weight: 600; font-size: 10pt; margin-bottom: 5px;">เพศ</div>
-                                <div style="height: 160px; position: relative;"><canvas id="previewGenderChart"></canvas></div>
-                            </div>
-                            <div style="width: 32%; text-align: center;">
-                                <div style="font-weight: 600; font-size: 10pt; margin-bottom: 5px;">ตำแหน่ง</div>
-                                <div style="height: 160px; position: relative;"><canvas id="previewPositionChart"></canvas></div>
-                            </div>
-                            <div style="width: 32%; text-align: center;">
-                                <div style="font-weight: 600; font-size: 10pt; margin-bottom: 5px;">หน่วยงาน</div>
-                                <div style="height: 160px; position: relative;"><canvas id="previewDepartmentChart"></canvas></div>
-                            </div>
+                        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 15px; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; background: #f8fafc;">
+                            ${currentGeneralData.fields.map((f, i) => `
+                            <div style="width: 32%; text-align: center; margin-bottom: 6px;">
+                                <div style="font-weight: 600; font-size: 10pt; margin-bottom: 5px;">${f.label}</div>
+                                <div style="height: 150px; position: relative;"><canvas id="previewChart-${i}"></canvas></div>
+                            </div>`).join('')}
                         </div>
                         ${buildGeneralInfoA4(currentGeneralData)}
                     </div>
@@ -2134,13 +2141,15 @@
                         });
                     };
 
-                    const paletteGender = ['#3E1F63', '#7B4BBE', '#C88AD9', '#DCD6E8'];
-                    const palettePosition = ['#5C2D91', '#8E7CC3', '#A06FD1', '#BBA7E6', '#3E1F63', '#7B4BBE'];
-                    const paletteDept = ['#3E1F63', '#5C2D91', '#7B4BBE', '#A06FD1', '#C88AD9', '#8E7CC3', '#DCD6E8'];
+                    const palette = ['#3E1F63', '#7B4BBE', '#A06FD1', '#C88AD9', '#8E7CC3', '#5C2D91', '#BBA7E6', '#DCD6E8', '#a78bfa', '#6cb2eb', '#34d399', '#fb923c', '#d946ef'];
 
-                    previewChartGender = renderPreviewDoughnut('previewGenderChart', previewChartGender, currentGeneralData.genders, paletteGender);
-                    previewChartPosition = renderPreviewDoughnut('previewPositionChart', previewChartPosition, currentGeneralData.positions, palettePosition);
-                    previewChartDept = renderPreviewDoughnut('previewDepartmentChart', previewChartDept, currentGeneralData.departments, paletteDept);
+                    // วาดกราฟข้อมูลทั่วไปใน A4 ตามฟิลด์จริง
+                    previewGeneralCharts.forEach(c => { try { c.destroy(); } catch (e) {} });
+                    previewGeneralCharts = [];
+                    currentGeneralData.fields.forEach((f, i) => {
+                        const cv = document.getElementById(`previewChart-${i}`);
+                        if (cv) previewGeneralCharts.push(renderPreviewDoughnut(`previewChart-${i}`, null, f.data, palette));
+                    });
 
                     // วาดกราฟ Bar สรุปคะแนนใน A4
                     const chartLabels = currentDashboardData.map(sec => sec.title.replace(/^\d+\.\s*/, '').replace(/^ด้าน/, ''));
