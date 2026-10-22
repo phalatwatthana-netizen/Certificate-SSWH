@@ -57,6 +57,13 @@
         ::-webkit-scrollbar-track { background: rgba(255,255,255,0.5); }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
+        @keyframes successPop {
+            0% { transform: scale(0.4); opacity: 0; }
+            60% { transform: scale(1.12); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .success-check { animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
         .glass-effect {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
@@ -219,12 +226,20 @@
         <div id="tab-survey" class="max-w-4xl mx-auto glass-effect p-6 md:p-10 rounded-3xl relative">
 
             <div id="success-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/30 backdrop-blur-sm">
-                <div class="glass-effect p-10 rounded-[2rem] shadow-2xl flex flex-col items-center text-center max-w-sm w-[90%] transform scale-95 transition-transform duration-300" id="success-modal-content">
-                    <div class="w-24 h-24 bg-gradient-to-br from-brand-green to-emerald-400 text-white rounded-full flex items-center justify-center mb-6 shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <div class="glass-effect p-8 md:p-10 rounded-[2rem] shadow-2xl flex flex-col items-center text-center max-w-sm w-[90%] transform scale-95 transition-all duration-300 relative overflow-hidden" id="success-modal-content">
+                    <div class="absolute inset-0 bg-gradient-to-br from-brand-green/10 via-transparent to-brand-blue/10 -z-10"></div>
+                    <div class="relative mb-6">
+                        <div class="absolute inset-0 rounded-full bg-brand-green/30 blur-xl animate-pulse"></div>
+                        <div class="w-24 h-24 bg-gradient-to-br from-brand-green to-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-brand-green/40 relative success-check">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        </div>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800 mb-3">บันทึกสำเร็จ</h3>
-                    <p class="text-slate-600 font-medium text-lg">กำลังพาคุณไปยังหน้าแดชบอร์ดสรุปผล...</p>
+                    <h3 class="text-3xl font-bold text-slate-800 mb-2">ส่งแบบประเมินสำเร็จ 🎉</h3>
+                    <p class="text-slate-600 font-medium text-base md:text-lg mb-7 leading-relaxed">ขอบคุณสำหรับการประเมิน<br>ระบบบันทึกข้อมูลเรียบร้อยแล้ว</p>
+                    <button id="btn-success-ok" class="w-full bg-gradient-to-r from-brand-green to-emerald-500 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-brand-green/30 transition-all active:scale-[0.98] border border-white/20 flex items-center justify-center gap-2">
+                        ตกลง
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </button>
                 </div>
             </div>
 
@@ -2387,14 +2402,22 @@
                         await new Promise(r => setTimeout(r, 1000));
                     }
 
-                    // Show Success
+                    // Show Success popup (รอผู้ใช้กด "ตกลง")
                     const modal = document.getElementById('success-modal');
                     const content = document.getElementById('success-modal-content');
+                    const okBtn = document.getElementById('btn-success-ok');
+
+                    // รีสตาร์ทอนิเมชันเครื่องหมายถูก
+                    const check = content.querySelector('.success-check');
+                    if (check) { check.style.animation = 'none'; void check.offsetWidth; check.style.animation = ''; }
+
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
                     setTimeout(() => content.classList.replace('scale-95', 'scale-100'), 10);
 
-                    setTimeout(() => {
+                    // เมื่อกดตกลง -> ปิด popup, พาไปหน้าใบประกาศ, รีเซ็ตฟอร์ม
+                    const finishSubmit = () => {
+                        okBtn.removeEventListener('click', finishSubmit);
                         content.classList.replace('scale-100', 'scale-95');
                         setTimeout(() => {
                             modal.classList.add('hidden');
@@ -2404,7 +2427,7 @@
                             const certInput = document.getElementById('cert-name-input');
                             if (certInput) certInput.value = fullName;
 
-                            // Switch to certificate tab automatically after success
+                            // ไปหน้าใบประกาศ
                             switchTab('certificate');
 
                             // Reset Form
@@ -2417,7 +2440,8 @@
                             btnSubmit.disabled = false;
                             btnSubmit.innerHTML = `ส่งแบบประเมิน`;
                         }, 300);
-                    }, 2000);
+                    };
+                    okBtn.addEventListener('click', finishSubmit);
 
                 } catch (error) {
                     console.error("Save Error:", error);
