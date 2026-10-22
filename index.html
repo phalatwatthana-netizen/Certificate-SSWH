@@ -1106,7 +1106,7 @@
                 const H = parseCSVRow(rows[0]).map(h => h.replace(/\s+/g, '').toLowerCase());
                 const find = (...keys) => H.findIndex(h => keys.some(k => h.includes(k)));
 
-                const fullIdx = find('ใบประกาศ', 'ชื่อ-สกุล', 'ชื่อสกุล', 'ชื่อเต็ม', 'fullname');
+                const fullIdx = find('ใบประกาศ', 'ชื่อ-สกุล', 'ชื่อสกุล', 'ชื่อ-นามสกุล', 'ชื่อนามสกุล', 'ชื่อเต็ม', 'รายชื่อ', 'ผู้เข้า', 'ผู้รับ', 'fullname');
                 const prefixIdx = find('คำนำหน้า', 'prefix');
                 const firstIdx = H.findIndex(h => h === 'ชื่อ' || h.includes('ชื่อจริง') || h === 'firstname' || h === 'name');
                 const lastIdx = find('นามสกุล', 'สกุล', 'lastname');
@@ -1121,9 +1121,9 @@
                         const fn = firstIdx !== -1 ? (cols[firstIdx] || '').trim() : '';
                         const ln = lastIdx !== -1 ? (cols[lastIdx] || '').trim() : '';
                         name = `${pre}${fn} ${ln}`.trim().replace(/\s+/g, ' ');
-                    } else if (cols.length >= 4) {
-                        // สำรอง: รูปแบบเดิม คอลัมน์ B/C/D = คำนำหน้า/ชื่อ/นามสกุล
-                        name = `${(cols[1] || '').trim()}${(cols[2] || '').trim()} ${(cols[3] || '').trim()}`.trim().replace(/\s+/g, ' ');
+                    } else if (cols.length >= 2) {
+                        // ไม่พบหัวคอลัมน์ชื่อ: ชื่ออยู่คอลัมน์ B (คอลัมน์ที่ 2) ไม่นับหัวแถว
+                        name = (cols[1] || '').trim();
                     } else if (cols.length >= 1) {
                         name = (cols[0] || '').trim();
                     }
