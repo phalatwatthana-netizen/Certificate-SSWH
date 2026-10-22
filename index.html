@@ -1086,6 +1086,16 @@
                 renderSelect('select-position-container', 'ตำแหน่ง', dropdownOptions.positions, 'position');
                 renderSelect('select-role-container', 'บทบาท', dropdownOptions.roles, 'role');
                 renderSelect('select-experience-container', 'ประสบการณ์ทำงาน (ปี)', dropdownOptions.experiences, 'experience');
+                // ข้อความกำกับใต้ช่องประสบการณ์
+                (function () {
+                    const expErr = document.getElementById('error-experience');
+                    if (expErr) {
+                        const hint = document.createElement('p');
+                        hint.className = 'text-xs text-slate-500 font-medium mt-1';
+                        hint.textContent = '* มากกว่า 6 เดือนปัดเป็น 1 ปี';
+                        expErr.parentNode.insertBefore(hint, expErr);
+                    }
+                })();
                 renderSelect('select-department-container', 'หน่วยงาน', dropdownOptions.departments, 'department');
 
                 const ratingsContainer = document.getElementById('rating-sections-container');
