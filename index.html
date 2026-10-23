@@ -2515,6 +2515,36 @@
                 });
             };
 
+            // บันทึกรูปจาก canvas: มือถือใช้ Web Share (บันทึกลงแกลเลอรีได้) / PC ดาวน์โหลด
+            const saveImageFromCanvas = (canvas, fileName) => new Promise((resolve) => {
+                canvas.toBlob(async (blob) => {
+                    if (!blob) { resolve('error'); return; }
+                    try {
+                        const file = new File([blob], fileName, { type: 'image/jpeg' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({ files: [file], title: fileName });
+                                resolve('shared');
+                                return;
+                            } catch (e) {
+                                if (e && e.name === 'AbortError') { resolve('cancelled'); return; }
+                                // แชร์ไม่ได้ -> ตกไปดาวน์โหลด
+                            }
+                        }
+                    } catch (e) { /* ตกไปดาวน์โหลด */ }
+                    // PC / fallback: ดาวน์โหลดด้วย blob URL (เสถียรกว่า data URL บนมือถือ)
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 2000);
+                    resolve('downloaded');
+                }, 'image/jpeg', 0.95);
+            });
+
             // แสดงสถานะโหลดบนปุ่ม แล้วคืนค่าเดิมเมื่อเสร็จ
             const withButtonLoading = async (btn, task) => {
                 const original = btn.innerHTML;
@@ -2538,11 +2568,10 @@
                 withButtonLoading(this, async () => {
                     try {
                         const canvas = await generateCertificateCanvas();
-                        const link = document.createElement('a');
-                        link.download = `เกียรติบัตร-${getCertName()}.jpg`;
-                        link.href = canvas.toDataURL('image/jpeg', 0.95);
-                        link.click();
-                        showToast("บันทึกไฟล์ JPG สำเร็จ", "success");
+                        const result = await saveImageFromCanvas(canvas, `เกียรติบัตร-${getCertName()}.jpg`);
+                        if (result === 'shared') showToast("เลือก \"บันทึกรูปภาพ\" เพื่อเก็บลงแกลเลอรี", "success");
+                        else if (result === 'downloaded') showToast("บันทึกไฟล์ JPG สำเร็จ", "success");
+                        else if (result === 'error') showToast("บันทึก JPG ไม่สำเร็จ", "error");
                     } catch (error) {
                         console.error("Cert JPG Error:", error);
                         showToast("บันทึก JPG ไม่สำเร็จ", "error");
